@@ -39,6 +39,10 @@ tasks {
         useJUnitPlatform()
     }
 
+    runIde {
+        systemProperty("idea.is.internal", "true")
+    }
+
     patchPluginXml {
         sinceBuild.set("213")
         untilBuild.set("223.*")

@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.7.10"
-    id("org.jetbrains.intellij") version "1.8.0"
+    id("org.jetbrains.intellij") version "1.9.0"
 }
 
 group = "com.foldright.auto-pipeline"
@@ -11,13 +11,18 @@ repositories {
     mavenCentral()
 }
 
+dependencies {
+    testImplementation("io.kotest:kotest-runner-junit5:5.5.4")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:5.5.4")
+}
+
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     version.set("2021.3.3")
     type.set("IC") // Target IDE Platform
 
-    plugins.set(listOf(/* Plugin Dependencies */))
+    plugins.set(listOf("com.intellij.java"))
 }
 
 tasks {
@@ -28,6 +33,10 @@ tasks {
     }
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "11"
+    }
+
+    withType<Test>().configureEach {
+        useJUnitPlatform()
     }
 
     patchPluginXml {

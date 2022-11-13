@@ -30,5 +30,9 @@
                 language="JAVA"
                 implementationClass="com.foldright.autopipeline.autopipelineideaplugin.AutoPipelineLineMarkerProvider"/>
 
+        <annotator
+                language="JAVA"
+                implementationClass="com.foldright.autopipeline.autopipelineideaplugin.AutoPipelineAnnotator"/>
+
     </extensions>
 </idea-plugin>

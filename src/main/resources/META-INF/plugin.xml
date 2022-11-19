@@ -28,11 +28,13 @@
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.lineMarkerProvider
                 language="JAVA"
-                implementationClass="com.foldright.autopipeline.autopipelineideaplugin.AutoPipelineLineMarkerProvider"/>
+                implementationClass="com.foldright.autopipeline.autopipelineideaplugin.gutter.AutoPipelineLineMarkerProvider"/>
 
         <annotator
                 language="JAVA"
-                implementationClass="com.foldright.autopipeline.autopipelineideaplugin.AutoPipelineAnnotator"/>
+                implementationClass="com.foldright.autopipeline.autopipelineideaplugin.annotator.AutoPipelineAnnotator"/>
 
+        <codeInsight.unresolvedReferenceQuickFixProvider
+                implementation="com.foldright.autopipeline.autopipelineideaplugin.reference.AutoPipelineUnresolvedReferenceQuickFixProvider" />
     </extensions>
 </idea-plugin>

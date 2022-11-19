@@ -1,4 +1,4 @@
-package com.foldright.autopipeline.autopipelineideaplugin
+package com.foldright.autopipeline.autopipelineideaplugin.icon
 
 import com.intellij.openapi.util.IconLoader
 

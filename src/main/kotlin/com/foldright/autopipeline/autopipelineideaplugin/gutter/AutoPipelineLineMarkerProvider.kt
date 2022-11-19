@@ -1,7 +1,7 @@
 package com.foldright.autopipeline.autopipelineideaplugin.gutter
 
 import com.foldright.autopipeline.autopipelineideaplugin.util.AutoPipelineUtil
-import com.foldright.autopipeline.autopipelineideaplugin.Icons
+import com.foldright.autopipeline.autopipelineideaplugin.icon.Icons
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder

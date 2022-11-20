@@ -38,6 +38,9 @@ tasks {
     withType<Test>().configureEach {
         useJUnitPlatform()
     }
+    buildSearchableOptions {
+        enabled = false
+    }
 
     runIde {
         systemProperty("idea.is.internal", "true")

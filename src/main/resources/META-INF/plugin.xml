@@ -18,6 +18,14 @@
     help to use auto-pipeline efficiently.
   ]]></description>
 
+    <change-notes><![CDATA[
+        <ul>
+            <li>quick fix for the missing related pipeline classes </li>
+            <li>line marker to quick navigation for the @AutoPipeline interface</li>
+            <li>suggest to enable annotation processing if not enable</li>
+        </ul>
+    ]]></change-notes>
+
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>

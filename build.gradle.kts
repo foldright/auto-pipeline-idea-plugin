@@ -41,6 +41,7 @@ tasks {
 
     runIde {
         systemProperty("idea.is.internal", "true")
+        autoReloadPlugins.set(true)
     }
 
     patchPluginXml {

@@ -4,7 +4,7 @@ import com.intellij.openapi.util.IconLoader
 
 object Icons {
 
-    val MARKER = IconLoader.getIcon("/icons/auto-pipeline-icon.svg", Icons.javaClass)
-
+    @JvmField
+    val Marker = IconLoader.getIcon("/icons/auto-pipeline-marker.svg", Icons.javaClass)
 
 }

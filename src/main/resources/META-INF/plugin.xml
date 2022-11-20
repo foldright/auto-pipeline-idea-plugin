@@ -26,6 +26,9 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
+
+        <postStartupActivity implementation="com.foldright.autopipeline.autopipelineideaplugin.activity.AutoPipelineProjectValidatorActivity"/>
+
         <codeInsight.lineMarkerProvider
                 language="JAVA"
                 implementationClass="com.foldright.autopipeline.autopipelineideaplugin.gutter.AutoPipelineLineMarkerProvider"/>
@@ -35,6 +38,8 @@
                 implementationClass="com.foldright.autopipeline.autopipelineideaplugin.annotator.AutoPipelineAnnotator"/>
 
         <codeInsight.unresolvedReferenceQuickFixProvider
-                implementation="com.foldright.autopipeline.autopipelineideaplugin.reference.AutoPipelineUnresolvedReferenceQuickFixProvider" />
+                implementation="com.foldright.autopipeline.autopipelineideaplugin.quickfix.AutoPipelineUnresolvedReferenceQuickFixProvider" />
+
+        <notificationGroup id="AutoPipeline plugin" displayType="BALLOON" bundle="messages.AutoPipeline" key="notification.group.autopipeline"/>
     </extensions>
 </idea-plugin>

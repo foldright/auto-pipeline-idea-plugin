@@ -17,8 +17,6 @@ class AutoPipelineAnnotator : Annotator {
             return
         }
 
-
-
         val autoPipelineDescriptor = AutoPipelineUtil.computeAutoPipelineDescriptor(element)
 
         val project = element.project
@@ -34,7 +32,7 @@ class AutoPipelineAnnotator : Annotator {
             .newAnnotation(HighlightSeverity.ERROR, "Auto-Pipeline doesn't generate files, try to compile project to generate")
             .range(element)
             .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
-            .withFix(AutoPipelineCompileIntentionAction())
+            .withFix(AutoPipelineCompileIntentionAction)
             .create()
     }
 }

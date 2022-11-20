@@ -8,7 +8,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 
-class AutoPipelineCompileIntentionAction : BaseIntentionAction(), PriorityAction {
+object AutoPipelineCompileIntentionAction : BaseIntentionAction(), PriorityAction {
 
     init {
         text = "Compile project to generate pipeline"
@@ -26,6 +26,5 @@ class AutoPipelineCompileIntentionAction : BaseIntentionAction(), PriorityAction
     }
 
     override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.TOP
-
 
 }

@@ -40,8 +40,11 @@ object AutoPipelineUtil {
         )
     }
 
-    fun hasAutoPipelineAnnotation(psiModifierListOwner: PsiModifierListOwner): PsiAnnotation? =
-        findAnnotation(psiModifierListOwner, AUTO_PIPELINE_ANNOTATION_NAME)
+    fun hasAutoPipelineAnnotation(psiModifierListOwner: PsiModifierListOwner?): PsiAnnotation? =
+        psiModifierListOwner?.run {
+            findAnnotation(this, AUTO_PIPELINE_ANNOTATION_NAME)
+        }
+
 
     private fun findAnnotation(psiModifierListOwner: PsiModifierListOwner, annotationFQN: String): PsiAnnotation? =
         psiModifierListOwner.getAnnotation(annotationFQN)

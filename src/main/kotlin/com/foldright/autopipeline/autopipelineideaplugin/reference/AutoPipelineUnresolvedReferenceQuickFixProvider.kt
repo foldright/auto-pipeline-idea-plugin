@@ -13,76 +13,65 @@ class AutoPipelineUnresolvedReferenceQuickFixProvider :
     UnresolvedReferenceQuickFixProvider<PsiJavaCodeReferenceElement>() {
 
     override fun registerFixes(ref: PsiJavaCodeReferenceElement, registrar: QuickFixActionRegistrar) {
-
-        // currently only process import statement
-        if(ref.parent is PsiImportStatement) {
-            if (canNotHelp(ref)) return
-
-            val componentQualifiedName = findComponentQualifiedName(ref.qualifiedName) ?: return
-
-            val project = ref.project
-            val projectScope = GlobalSearchScope.projectScope(project)
-            val javaPsiFacade = JavaPsiFacade.getInstance(project)
-
-            val componentPsiClass = javaPsiFacade.findClass(componentQualifiedName, projectScope) ?: return
-
-            if( AutoPipelineUtil.hasAutoPipelineAnnotation(componentPsiClass) == null ) {
-                return
+        val parent = ref.parent
+        if (parent is PsiImportStatement || parent is PsiReferenceList || parent is PsiTypeElement) {
+            if (!canFix(ref)) return
+            val componentPsiClass = findComponentClass(ref)
+            AutoPipelineUtil.hasAutoPipelineAnnotation(componentPsiClass)?.apply {
+                registrar.register(AutoPipelineCompileIntentionAction)
             }
-
-            registrar.register(AutoPipelineCompileIntentionAction())
         }
-
-
-        if(ref.parent is PsiReferenceList || ref.parent is PsiTypeElement) {
-            if (canNotHelp(ref)) return
-
-            val componentShortName = findComponentShortName(ref.qualifiedName) ?: return
-
-            val project = ref.project
-            val projectScope = GlobalSearchScope.projectScope(project)
-
-            val componentPsiClass =
-                PsiShortNamesCache.getInstance(project).getClassesByName(componentShortName, projectScope) ?: return
-
-            if( AutoPipelineUtil.hasAutoPipelineAnnotation(componentPsiClass[0]) == null ) {
-                return
-            }
-
-            registrar.register(AutoPipelineCompileIntentionAction())
-        }
-
-
-
-
-
-    }
-
-    private fun canNotHelp(ref: PsiJavaCodeReferenceElement): Boolean {
-        val psiFile = ref.containingFile
-        if (psiFile !is PsiJavaFile) {
-            return true
-        }
-
-        if (psiFile.language !is JavaLanguage) {
-            return true
-        }
-
-        val psiClasses = psiFile.classes
-
-        if (psiClasses.size != 1) {
-            return true
-        }
-        return false
     }
 
     override fun getReferenceClass(): Class<PsiJavaCodeReferenceElement> =
         PsiJavaCodeReferenceElement::class.java
 
+    private fun findComponentClass(ref: PsiJavaCodeReferenceElement): PsiClass? {
+        val project = ref.project
+        val projectScope = GlobalSearchScope.projectScope(project)
+        val javaPsiFacade = JavaPsiFacade.getInstance(project)
+        val psiShortNameCache = PsiShortNamesCache.getInstance(project)
+
+        val componentPsiClass = when (ref.parent) {
+            is PsiImportStatement ->  findComponentQualifiedName(ref.qualifiedName)?.let { componentQualifiedName ->
+                javaPsiFacade.findClass(componentQualifiedName, projectScope)
+            }
+
+            is PsiReferenceList, is PsiTypeElement -> {
+                val componentShortName = findComponentShortName(ref.qualifiedName) ?: return null
+                val classes = psiShortNameCache.getClassesByName(componentShortName, projectScope)
+                return if (classes.isNotEmpty()) classes[0] else null
+            }
+
+            else -> null
+        }
+
+        return componentPsiClass
+    }
+
+    private fun canFix(ref: PsiJavaCodeReferenceElement): Boolean {
+        val psiFile = ref.containingFile
+        if (psiFile !is PsiJavaFile) {
+            return false
+        }
+
+        if (psiFile.language !is JavaLanguage) {
+            return false
+        }
+
+        val psiClasses = psiFile.classes
+
+        if (psiClasses.size != 1) {
+            return false
+        }
+        return true
+    }
 
     companion object {
-        private val GENERATED_PIPELINE_HANDLER_OR_CONTEXT_NAME = """^(?<packageName>.+)\.pipeline.(?<componentName>.+)Handler(Context)?$""".toRegex()
-        private val GENERATED_PIPELINE_HANDLER_OR_CONTEXT_SHORT_NAME = """^(?<componentName>.+)Handler(Context)?$""".toRegex()
+        private val GENERATED_PIPELINE_HANDLER_OR_CONTEXT_NAME =
+            """^(?<packageName>.+)\.pipeline.(?<componentName>.+)Handler(Context)?$""".toRegex()
+        private val GENERATED_PIPELINE_HANDLER_OR_CONTEXT_SHORT_NAME =
+            """^(?<componentName>.+)Handler(Context)?$""".toRegex()
 
         private fun findComponentQualifiedName(qualifiedName: String): String? =
             GENERATED_PIPELINE_HANDLER_OR_CONTEXT_NAME.matchEntire(qualifiedName)?.groups?.run {

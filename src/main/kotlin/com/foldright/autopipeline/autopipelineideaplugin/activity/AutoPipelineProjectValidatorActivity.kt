@@ -21,7 +21,7 @@ import com.intellij.ui.awt.RelativePoint
 import java.util.*
 import java.util.concurrent.Callable
 
-class AutoPipelineProjectValidatorActivity : StartupActivity.DumbAware {
+class AutoPipelineProjectValidatorActivity : StartupActivity.RequiredForSmartMode {
 
     override fun runActivity(project: Project) {
         val connection = project.messageBus.connect()

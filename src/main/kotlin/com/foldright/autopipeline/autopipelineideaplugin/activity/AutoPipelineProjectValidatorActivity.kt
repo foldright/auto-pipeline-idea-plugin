@@ -11,6 +11,8 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.SingletonNotificationManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.ui.MessageType
@@ -25,9 +27,7 @@ class AutoPipelineProjectValidatorActivity : StartupActivity.RequiredForSmartMod
 
     override fun runActivity(project: Project) {
         val connection = project.messageBus.connect()
-
         connection.subscribe(BuildManagerListener.TOPIC, AutoPipelineBuildManagerListener())
-
     }
 }
 
@@ -41,10 +41,7 @@ class AutoPipelineBuildManagerListener : BuildManagerListener {
             return
         }
 
-        val isAutoPipelinePresent = ReadAction.nonBlocking(Callable {
-            AutoPipelineUtil.isAutoPipelinePresent(project)
-        }).executeSynchronously()
-
+        val isAutoPipelinePresent = AutoPipelineUtil.isAutoPipelinePresent(project)
         if (!isAutoPipelinePresent) {
             return
         }
@@ -81,18 +78,21 @@ class AutoPipelineBuildManagerListener : BuildManagerListener {
     }
 
     private fun suggestEnableAnnotations(project: Project) {
-        notificationManager.notify("",
+        notificationManager.notify(
+            "",
             AutoPipelineBundle.message("config.warn.annotation-processing.disabled.title"),
-            project) { notification ->
-                notification.addAction(object : NotificationAction(AutoPipelineBundle.message("notification.enable.annotation.processing")) {
-                    override fun actionPerformed(e: AnActionEvent, notification: Notification) {
-                        enableAnnotationProcessors(project)
-                        notification.expire()
-                    }
+            project
+        ) { notification ->
+            notification.addAction(object :
+                NotificationAction(AutoPipelineBundle.message("notification.enable.annotation.processing")) {
+                override fun actionPerformed(e: AnActionEvent, notification: Notification) {
+                    enableAnnotationProcessors(project)
+                    notification.expire()
+                }
 
-                })
+            })
 
-            }
+        }
     }
 
 }

@@ -1,6 +1,9 @@
 package com.foldright.autopipeline.autopipelineideaplugin.util
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.psi.*
@@ -9,6 +12,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiTreeUtil
+import java.util.concurrent.Callable
 
 object AutoPipelineUtil {
 
@@ -55,6 +59,18 @@ object AutoPipelineUtil {
         psiModifierListOwner.getAnnotation(annotationFQN)
 
     fun isAutoPipelinePresent(project: Project): Boolean {
+        var isAutoPipelinePresent = false
+        ReadAction.nonBlocking(Callable {
+            val dumbService = DumbService.getInstance(project)
+            dumbService.runWithAlternativeResolveEnabled<IndexNotReadyException> {
+                isAutoPipelinePresent = doCheckAutoPipelinePresent(project)
+            }
+        }).executeSynchronously()
+
+        return isAutoPipelinePresent
+    }
+
+    private fun doCheckAutoPipelinePresent(project: Project): Boolean {
         if (project.isDefault || !project.isInitialized) {
             return false
         }

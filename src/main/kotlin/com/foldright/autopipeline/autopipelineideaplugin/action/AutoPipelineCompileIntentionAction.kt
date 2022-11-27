@@ -5,9 +5,8 @@ import com.intellij.codeInsight.intention.impl.BaseIntentionAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.compiler.CompilerManager
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectNotificationAware
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
-import com.intellij.openapi.externalSystem.autoimport.ProjectNotificationAware
-import com.intellij.openapi.externalSystem.autoimport.ProjectRefreshAction
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
@@ -26,7 +25,7 @@ object AutoPipelineCompileIntentionAction : BaseIntentionAction(), PriorityActio
         ApplicationManager.getApplication().invokeLater {
             val compilerManager = CompilerManager.getInstance(project)
             compilerManager.rebuild { abort, errors, _, _ ->
-                if(!abort && errors == 0) {
+                if (!abort && errors == 0) {
                     refreshProject(project)
                 }
             }
@@ -36,7 +35,7 @@ object AutoPipelineCompileIntentionAction : BaseIntentionAction(), PriorityActio
     override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.TOP
 
     private fun refreshProject(project: Project) {
-        val projectNotificationAware = ProjectNotificationAware.getInstance(project)
+        val projectNotificationAware = ExternalSystemProjectNotificationAware.getInstance(project)
         val systemIds = projectNotificationAware.getSystemIds()
         if (ExternalSystemUtil.confirmLoadingUntrustedProject(project, systemIds)) {
             val projectTracker = ExternalSystemProjectTracker.getInstance(project)

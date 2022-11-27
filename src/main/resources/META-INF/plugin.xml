@@ -25,6 +25,9 @@
   ]]></description>
 
     <change-notes><![CDATA[
+        <ul>
+            <li>remove deprecated api usages</li>
+        </ul>
     ]]></change-notes>
 
     <!-- Product and plugin compatibility requirements.

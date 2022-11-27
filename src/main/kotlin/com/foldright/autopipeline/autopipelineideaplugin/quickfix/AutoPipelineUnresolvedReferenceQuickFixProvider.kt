@@ -7,6 +7,7 @@ import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
@@ -74,12 +75,12 @@ class AutoPipelineUnresolvedReferenceQuickFixProvider :
                         return@let classes[0]
                     }
 
-                    val possibleFiles =
-                        FilenameIndex.getFilesByName(project, "${componentShortName}.java", projectScope)
-                    val possibleClasses = possibleFiles
-                        .asSequence()
-                        .mapNotNull { it.castSafelyTo<PsiJavaFile>() }
-                        .flatMap { it.classes.toList() }
+
+                    val possibleVirtualFiles =
+                        FilenameIndex.getVirtualFilesByName("${componentShortName}.java", projectScope)
+
+                    val possiblePsiClassesSequence = tryFindPossiblePsiClasses(possibleVirtualFiles, project)
+                    val possibleClasses = possiblePsiClassesSequence
                         .filter { it.name == componentShortName }
                         .take(1)
                         .toList()
@@ -88,7 +89,7 @@ class AutoPipelineUnresolvedReferenceQuickFixProvider :
                         return@let null
                     }
 
-                    return possibleClasses[0]
+                    return@let possibleClasses[0]
                 }
             }
 
@@ -104,15 +105,13 @@ class AutoPipelineUnresolvedReferenceQuickFixProvider :
         project: Project,
     ): PsiClass? {
         val fileName = "${componentQualifiedName.substringAfterLast(".")}.java"
-        val possibleFiles = FilenameIndex.getFilesByName(project, fileName, projectScope)
-        if (possibleFiles.isEmpty()) {
-            return null
-        }
 
-        val possiblePsiClasses = possibleFiles
-            .asSequence()
-            .mapNotNull { it.castSafelyTo<PsiJavaFile>() }
-            .flatMap { it.classes.toList() }
+        val possibleVirtualFiles =
+            FilenameIndex.getVirtualFilesByName(fileName, projectScope)
+
+        val possiblePsiClassesSequence = tryFindPossiblePsiClasses(possibleVirtualFiles, project)
+
+        val possiblePsiClasses = possiblePsiClassesSequence
             .filter { it.qualifiedName == componentQualifiedName }
             .take(1)
             .toList()
@@ -122,6 +121,22 @@ class AutoPipelineUnresolvedReferenceQuickFixProvider :
         }
 
         return possiblePsiClasses[0]
+    }
+
+    private fun tryFindPossiblePsiClasses(
+        possibleVirtualFiles: Collection<VirtualFile>,
+        project: Project
+    ): Sequence<PsiClass> {
+        if (possibleVirtualFiles.isEmpty()) {
+            return emptySequence()
+        }
+
+        val psiManager = PsiManager.getInstance(project)
+        return possibleVirtualFiles
+            .asSequence()
+            .mapNotNull { psiManager.findFile(it) }
+            .mapNotNull { it.castSafelyTo<PsiJavaFile>() }
+            .flatMap { it.classes.toList() }
     }
 
     private fun canProcess(ref: PsiJavaCodeReferenceElement): Boolean {

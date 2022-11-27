@@ -15,7 +15,7 @@ import com.intellij.psi.PsiFile
 object AutoPipelineCompileIntentionAction : BaseIntentionAction(), PriorityAction {
 
     init {
-        text = "Compile project to generate pipeline"
+        text = "Compile project to generate Pipeline"
     }
 
     override fun getFamilyName(): String = "Auto-Pipeline"
@@ -25,7 +25,11 @@ object AutoPipelineCompileIntentionAction : BaseIntentionAction(), PriorityActio
     override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
         ApplicationManager.getApplication().invokeLater {
             val compilerManager = CompilerManager.getInstance(project)
-            compilerManager.rebuild { _, _, _, _ -> refreshProject(project) }
+            compilerManager.rebuild { abort, errors, _, _ ->
+                if(!abort && errors == 0) {
+                    refreshProject(project)
+                }
+            }
         }
     }
 

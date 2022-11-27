@@ -1,25 +1,34 @@
 package com.foldright.autopipeline.autopipelineideaplugin.util
 
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.PsiJavaFileImpl
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiTreeUtil
-import java.util.concurrent.Callable
 
 object AutoPipelineUtil {
 
+    private const val AUTO_PIPELINE_ANNOTATION_PACKAGE = "com.foldright.auto.pipeline"
     private const val AUTO_PIPELINE_ANNOTATION_NAME = "com.foldright.auto.pipeline.AutoPipeline"
-    private const val AUTO_PIPELINE_ANNOTATION_PROCESSOR_NAME = "com.foldright.auto.pipeline.processor.AutoPipelineProcessor"
+    private const val AUTO_PIPELINE_ANNOTATION_SHORT_NAME = "AutoPipeline"
 
     fun isAutoPipelineAnnotated(element: PsiElement): Boolean {
+        val psiFile = element.containingFile
+        if (psiFile !is PsiJavaFile) {
+            return false
+        }
+        if (psiFile.language !is JavaLanguage) {
+            return false
+        }
+
+        if (!psiFile.name.endsWith(".java")) {
+            return false
+        }
+
         if (element !is PsiIdentifier ||
             element.parent !is PsiJavaCodeReferenceElement ||
             element.parent.parent !is PsiAnnotation
@@ -29,12 +38,11 @@ object AutoPipelineUtil {
 
         val psiJavaCodeReferenceElement = element.parent as PsiJavaCodeReferenceElement
 
-        if (psiJavaCodeReferenceElement.qualifiedName != AUTO_PIPELINE_ANNOTATION_NAME) {
-            return false
-        }
-
-        return true
+        return isAutoPipelineAnnotation(psiJavaCodeReferenceElement.qualifiedName)
     }
+
+    fun isAutoPipelineAnnotation(annotationFQN: String): Boolean =
+        annotationFQN == AUTO_PIPELINE_ANNOTATION_NAME
 
     fun computeAutoPipelineDescriptor(element: PsiElement): AutoPipelineDescriptor {
 
@@ -53,43 +61,23 @@ object AutoPipelineUtil {
 
     fun hasAutoPipelineAnnotation(psiModifierListOwner: PsiModifierListOwner): Boolean =
         findAnnotation(psiModifierListOwner, AUTO_PIPELINE_ANNOTATION_NAME) != null
+                || findAnnotation(psiModifierListOwner, AUTO_PIPELINE_ANNOTATION_SHORT_NAME) != null
 
-
-    private fun findAnnotation(psiModifierListOwner: PsiModifierListOwner, annotationFQN: String): PsiAnnotation? =
-        psiModifierListOwner.getAnnotation(annotationFQN)
 
     fun isAutoPipelinePresent(project: Project): Boolean {
-        var isAutoPipelinePresent = false
-        ReadAction.nonBlocking(Callable {
-            val dumbService = DumbService.getInstance(project)
-            dumbService.runWithAlternativeResolveEnabled<IndexNotReadyException> {
-                isAutoPipelinePresent = doCheckAutoPipelinePresent(project)
-            }
-        }).executeSynchronously()
-
-        return isAutoPipelinePresent
-    }
-
-    private fun doCheckAutoPipelinePresent(project: Project): Boolean {
         if (project.isDefault || !project.isInitialized) {
             return false
         }
 
         ApplicationManager.getApplication().assertReadAccessAllowed()
-
         return CachedValuesManager.getManager(project).getCachedValue(project) {
-            val javaPsiFacade = JavaPsiFacade.getInstance(project)
-            val projectScope = GlobalSearchScope.projectScope(project)
-            val projectRootManager = ProjectRootManager.getInstance(project)
-
-            javaPsiFacade.findClass(AUTO_PIPELINE_ANNOTATION_NAME, projectScope)
-                ?: return@getCachedValue CachedValueProvider.Result(false, projectRootManager)
-
-            javaPsiFacade.findClass(AUTO_PIPELINE_ANNOTATION_PROCESSOR_NAME, projectScope)
-                ?: return@getCachedValue CachedValueProvider.Result(false, projectRootManager)
-
-            return@getCachedValue CachedValueProvider.Result(true, projectRootManager)
-        }
+            val psiPackage = JavaPsiFacade.getInstance(project).findPackage(AUTO_PIPELINE_ANNOTATION_PACKAGE)
+            return@getCachedValue CachedValueProvider.Result(psiPackage, ProjectRootManager.getInstance(project))
+        } != null
     }
+
+    private fun findAnnotation(psiModifierListOwner: PsiModifierListOwner, annotationFQN: String): PsiAnnotation? =
+        psiModifierListOwner.getAnnotation(annotationFQN)
+
 }
 

@@ -1,12 +1,13 @@
 package com.foldright.autopipeline.autopipelineideaplugin.gutter
 
-import com.foldright.autopipeline.autopipelineideaplugin.util.AutoPipelineUtil
 import com.foldright.autopipeline.autopipelineideaplugin.icon.Icons
+import com.foldright.autopipeline.autopipelineideaplugin.util.AutoPipelineUtil
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
 import com.intellij.openapi.editor.markup.GutterIconRenderer
-import com.intellij.psi.*
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 
 class AutoPipelineLineMarkerProvider : RelatedItemLineMarkerProvider() {
@@ -16,7 +17,7 @@ class AutoPipelineLineMarkerProvider : RelatedItemLineMarkerProvider() {
         result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
     ) {
 
-        if(!AutoPipelineUtil.isAutoPipelineAnnotated(element)) {
+        if (!AutoPipelineUtil.isAutoPipelineAnnotated(element)) {
             return
         }
 

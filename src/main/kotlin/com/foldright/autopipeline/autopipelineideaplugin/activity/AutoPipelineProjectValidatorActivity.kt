@@ -10,9 +10,6 @@ import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.notification.SingletonNotificationManager
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.ui.MessageType
@@ -21,9 +18,8 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.ui.awt.RelativePoint
 import java.util.*
-import java.util.concurrent.Callable
 
-class AutoPipelineProjectValidatorActivity : StartupActivity.RequiredForSmartMode {
+class AutoPipelineProjectValidatorActivity : StartupActivity.DumbAware {
 
     override fun runActivity(project: Project) {
         val connection = project.messageBus.connect()

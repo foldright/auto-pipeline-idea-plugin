@@ -5,12 +5,15 @@ import com.foldright.autopipeline.autopipelineideaplugin.util.AutoPipelineUtil
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.psi.*
+import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.util.castSafelyTo
 
 class AutoPipelineUnresolvedReferenceQuickFixProvider :
     UnresolvedReferenceQuickFixProvider<PsiJavaCodeReferenceElement>() {
@@ -53,21 +56,72 @@ class AutoPipelineUnresolvedReferenceQuickFixProvider :
         val javaPsiFacade = JavaPsiFacade.getInstance(project)
         val psiShortNameCache = PsiShortNamesCache.getInstance(project)
 
+        val qualifiedName = ref.qualifiedName
         val componentPsiClass = when (ref.parent) {
-            is PsiImportStatement -> findComponentQualifiedName(ref.qualifiedName)?.let { componentQualifiedName ->
-                javaPsiFacade.findClass(componentQualifiedName, projectScope)
+            is PsiImportStatement -> findComponentQualifiedName(qualifiedName)?.let { componentQualifiedName ->
+                val result = javaPsiFacade.findClass(componentQualifiedName, projectScope)
+                if (result != null) {
+                    return@let result
+                }
+
+                return@let tryFindPsiClass(componentQualifiedName, projectScope, project)
             }
 
             is PsiReferenceList, is PsiTypeElement -> {
-                val componentShortName = findComponentShortName(ref.qualifiedName) ?: return null
-                val classes = psiShortNameCache.getClassesByName(componentShortName, projectScope)
-                return if (classes.isNotEmpty()) classes[0] else null
+                findComponentShortName(qualifiedName)?.let { componentShortName ->
+                    val classes = psiShortNameCache.getClassesByName(componentShortName, projectScope)
+                    if (classes.isNotEmpty()) {
+                        return@let classes[0]
+                    }
+
+                    val possibleFiles =
+                        FilenameIndex.getFilesByName(project, "${componentShortName}.java", projectScope)
+                    val possibleClasses = possibleFiles
+                        .asSequence()
+                        .mapNotNull { it.castSafelyTo<PsiJavaFile>() }
+                        .flatMap { it.classes.toList() }
+                        .filter { it.name == componentShortName }
+                        .take(1)
+                        .toList()
+
+                    if (possibleClasses.isEmpty()) {
+                        return@let null
+                    }
+
+                    return possibleClasses[0]
+                }
             }
 
             else -> null
         }
 
         return componentPsiClass
+    }
+
+    private fun tryFindPsiClass(
+        componentQualifiedName: String,
+        projectScope: GlobalSearchScope,
+        project: Project,
+    ): PsiClass? {
+        val fileName = "${componentQualifiedName.substringAfterLast(".")}.java"
+        val possibleFiles = FilenameIndex.getFilesByName(project, fileName, projectScope)
+        if (possibleFiles.isEmpty()) {
+            return null
+        }
+
+        val possiblePsiClasses = possibleFiles
+            .asSequence()
+            .mapNotNull { it.castSafelyTo<PsiJavaFile>() }
+            .flatMap { it.classes.toList() }
+            .filter { it.qualifiedName == componentQualifiedName }
+            .take(1)
+            .toList()
+
+        if (possiblePsiClasses.isEmpty()) {
+            return null
+        }
+
+        return possiblePsiClasses[0]
     }
 
     private fun canProcess(ref: PsiJavaCodeReferenceElement): Boolean {
@@ -80,11 +134,10 @@ class AutoPipelineUnresolvedReferenceQuickFixProvider :
             return false
         }
 
-        val psiClasses = psiFile.classes
-
-        if (psiClasses.size != 1) {
+        if (AutoPipelineUtil.isAutoPipelineAnnotation(ref.qualifiedName)) {
             return false
         }
+
         return true
     }
 

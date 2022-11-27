@@ -10,6 +10,7 @@ import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.notification.SingletonNotificationManager
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.ui.MessageType
@@ -36,8 +37,10 @@ class AutoPipelineBuildManagerListener : BuildManagerListener {
         if (hasAnnotationProcessEnable(project)) {
             return
         }
+        val isAutoPipelinePresent =  ReadAction.nonBlocking<Boolean> {
+            AutoPipelineUtil.isAutoPipelinePresent(project)
+        }.executeSynchronously()
 
-        val isAutoPipelinePresent = AutoPipelineUtil.isAutoPipelinePresent(project)
         if (!isAutoPipelinePresent) {
             return
         }

@@ -2,6 +2,11 @@
 
 for using [auto-pipeline](https://github.com/foldright/auto-pipeline) efficiently.
 
+## install the plugin
+install from the plugin homepage: https://plugins.jetbrains.com/plugin/20535-auto-pipeline
+
+or install from idea IDE, using keyword `Auto Pipeline` to search in the IDE plugins marketpplace.
+
 ## Features
 
 - quick fix for the missing related pipeline classes </li>

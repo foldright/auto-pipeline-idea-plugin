@@ -26,7 +26,7 @@
 
     <change-notes><![CDATA[
         <ul>
-            <li>remove deprecated api usages</li>
+            <li>support 2023.1</li>
         </ul>
     ]]></change-notes>
 

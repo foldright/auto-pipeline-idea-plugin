@@ -14,7 +14,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.util.castSafelyTo
 
 class AutoPipelineUnresolvedReferenceQuickFixProvider :
     UnresolvedReferenceQuickFixProvider<PsiJavaCodeReferenceElement>() {
@@ -135,7 +134,7 @@ class AutoPipelineUnresolvedReferenceQuickFixProvider :
         return possibleVirtualFiles
             .asSequence()
             .mapNotNull { psiManager.findFile(it) }
-            .mapNotNull { it.castSafelyTo<PsiJavaFile>() }
+            .map { it as PsiJavaFile }
             .flatMap { it.classes.toList() }
     }
 

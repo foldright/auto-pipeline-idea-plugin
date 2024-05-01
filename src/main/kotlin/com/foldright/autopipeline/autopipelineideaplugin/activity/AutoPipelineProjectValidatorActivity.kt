@@ -69,7 +69,7 @@ class AutoPipelineBuildManagerListener : BuildManagerListener {
             )
             .setFadeoutTime(3000)
             .createBalloon()
-            .show(RelativePoint.getNorthEastOf(statusBar.component), Balloon.Position.atRight)
+            .show(RelativePoint.getNorthEastOf(statusBar.component!!), Balloon.Position.atRight)
     }
 
     private fun getCompilerConfiguration(project: Project): CompilerConfigurationImpl {

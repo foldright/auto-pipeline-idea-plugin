@@ -1,7 +1,7 @@
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.8.20"
-    id("org.jetbrains.intellij") version "1.13.3"
+    id("org.jetbrains.kotlin.jvm") version "1.9.21"
+    id("org.jetbrains.intellij") version "1.17.3"
 }
 
 group = "com.foldright.auto-pipeline"
@@ -12,16 +12,17 @@ repositories {
 }
 
 dependencies {
-    testImplementation("io.kotest:kotest-runner-junit5:5.5.4")
-    testImplementation("io.kotest:kotest-assertions-core-jvm:5.5.4")
+    testImplementation("io.kotest:kotest-runner-junit5:5.8.2")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:5.8.2")
 }
 
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2022.3")
+    version.set("2023.2")
     type.set("IC") // Target IDE Platform
 
+    // Plugin Dependencies
     plugins.set(listOf("com.intellij.java"))
 }
 
@@ -47,9 +48,10 @@ tasks {
         autoReloadPlugins.set(true)
     }
 
+    // see https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html#platformVersions
     patchPluginXml {
-        sinceBuild.set("223")
-        untilBuild.set("231.*")
+        sinceBuild.set("232")
+        untilBuild.set("233")
     }
 
     signPlugin {
@@ -59,6 +61,6 @@ tasks {
     }
 
     publishPlugin {
-        token.set(System.getenv("ORG_GRADLE_PROJECT_intellijPublishToken"))
+        token.set(System.getenv("PUBLISH_TOKEN"))
     }
 }
